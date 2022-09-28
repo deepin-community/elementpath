@@ -1,0 +1,55 @@
+elementpath (2.3.0-1) unstable; urgency=medium
+
+  * Import new upstream release
+  * d/patches:
+    - Drop d/patches that are merged in the upstream
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Sun, 05 Sep 2021 16:47:00 +0800
+
+elementpath (2.1.2-1) unstable; urgency=medium
+
+  * Import new upstream release
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Mon, 25 Jan 2021 11:22:04 +0800
+
+elementpath (2.1.1-1) unstable; urgency=medium
+
+  * Import new upstream release
+  * d/control:
+    - Bump Standards-Version to 4.5.1
+  *d/test/control:
+    - Mark autopktest superficial
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Fri, 08 Jan 2021 14:09:40 +0800
+
+elementpath (2.0.4-1) unstable; urgency=medium
+
+  * Import new upstream release
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Wed, 04 Nov 2020 17:47:25 +0800
+
+elementpath (1.4.6-1) unstable; urgency=medium
+
+  [ Alvin Chen ]
+  * New upstream release
+
+  [ SZ Lin (林上智) ]
+  * Add salsa-ci.yml for autopkgtest purpose
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Fri, 14 Aug 2020 16:03:10 +0800
+
+elementpath (1.4.4-1) unstable; urgency=low
+
+  [ Alvin Chen ]
+  * Initial release. (Closes: #958660)
+
+  [ SZ Lin (林上智) ]
+  * d/control:
+    - Add uploader column
+    - Add VCS info.
+  * d/copyright:
+    - Add copyright info.
+  * d/rules:
+    - Remove trailing newline
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Fri, 08 May 2020 11:38:57 +0800
