@@ -2,6 +2,59 @@
 CHANGELOG
 *********
 
+`v3.0.2`_ (2022-08-12)
+======================
+* Extend root concept to subtrees used as root (e.g. XSD 1.1 assertions)
+* Begin XPath 3.1 implementation adding XPathMap and XPathArray
+
+`v3.0.1`_ (2022-07-23)
+======================
+* Fix of descendant path operator (issue #51)
+* Add support for Python 3.11
+
+`v3.0.0`_ (2022-07-16)
+======================
+* Transition to full XPath node implementation (more memory usage but
+  better control and overall faster)
+* Add etree.py module with a safe XML parser (ported from xmlschema)
+
+`v2.5.3`_ (2022-05-30)
+======================
+* Fix unary path step operator (issue #46)
+* Fix sphinx warnings *'reference target not found'* (issue #45)
+
+`v2.5.2`_ (2022-05-17)
+======================
+* Include PR #43 with fixes for `XPathContext.iter_siblings()` (issues #42 and #44)
+
+`v2.5.1`_ (2022-04-28)
+======================
+* Fix for failed floats equality tests (issue #41)
+* Static typing tested with mypy==0.950
+
+`v2.5.0`_ (2022-03-04)
+======================
+* Add XPath 3.0 support
+* Better use of lxml.etree features
+* Full coverage of W3C tests
+* Drop support for Python 3.6
+
+`v2.4.0`_ (2021-11-09)
+======================
+* Fix type annotations and going strict on parsers and other public classes
+* Add XPathConstructor token class (subclass of XPathFunction)
+* Last release for Python 3.6
+
+`v2.3.2`_ (2021-09-16)
+======================
+* Make ElementProtocol and LxmlElementProtocol runtime checkable (only for Python 3.8+)
+* Type annotations for all package public APIs
+
+`v2.3.1`_ (2021-09-07)
+======================
+* Add LxmlElementProtocol
+* Add pytest env to tox.ini (test issue #39)
+
 `v2.3.0`_ (2021-09-01)
 ======================
 * Add inline type annotations check support
@@ -323,3 +376,13 @@ CHANGELOG
 .. _v2.2.2: https://github.com/sissaschool/elementpath/compare/v2.2.1...v2.2.2
 .. _v2.2.3: https://github.com/sissaschool/elementpath/compare/v2.2.2...v2.2.3
 .. _v2.3.0: https://github.com/sissaschool/elementpath/compare/v2.2.3...v2.3.0
+.. _v2.3.1: https://github.com/sissaschool/elementpath/compare/v2.3.0...v2.3.1
+.. _v2.3.2: https://github.com/sissaschool/elementpath/compare/v2.3.1...v2.3.2
+.. _v2.4.0: https://github.com/sissaschool/elementpath/compare/v2.3.3...v2.4.0
+.. _v2.5.0: https://github.com/sissaschool/elementpath/compare/v2.4.0...v2.5.0
+.. _v2.5.1: https://github.com/sissaschool/elementpath/compare/v2.5.0...v2.5.1
+.. _v2.5.2: https://github.com/sissaschool/elementpath/compare/v2.5.1...v2.5.2
+.. _v2.5.3: https://github.com/sissaschool/elementpath/compare/v2.5.2...v2.5.3
+.. _v3.0.0: https://github.com/sissaschool/elementpath/compare/v2.5.3...v3.0.0
+.. _v3.0.1: https://github.com/sissaschool/elementpath/compare/v3.0.0...v3.0.1
+.. _v3.0.2: https://github.com/sissaschool/elementpath/compare/v3.0.1...v3.0.2

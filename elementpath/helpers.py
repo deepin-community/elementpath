@@ -9,14 +9,25 @@
 #
 import re
 import math
+import locale as _locale
 from calendar import isleap, leapdays
 from decimal import Decimal
-from typing import Optional, Pattern, Union
+from operator import attrgetter
+from typing import Optional, Union, SupportsFloat
+
+###
+# Common sets constants
+OCCURRENCE_INDICATORS = frozenset(('?', '*', '+'))
+BOOLEAN_VALUES = frozenset(('true', 'false', '1', '0'))
+NUMERIC_INF_OR_NAN = frozenset(('INF', '-INF', 'NaN'))
+INVALID_NUMERIC = frozenset(
+    ('inf', '+inf', '-inf', 'nan', 'infinity', '+infinity', '-infinity')
+)
 
 ###
 # Data validation helpers
 
-NORMALIZE_PATTERN: Pattern[str] = re.compile(r'[^\S\xa0]')
+NORMALIZE_PATTERN = re.compile(r'[^\S\xa0]')
 WHITESPACES_PATTERN = re.compile(r'[^\S\xa0]+')  # include ASCII 160 (non-breaking space)
 NCNAME_PATTERN = re.compile(r'^[^\d\W][\w.\-\u00B7\u0300-\u036F\u203F\u2040]*$')
 QNAME_PATTERN = re.compile(
@@ -41,6 +52,8 @@ def is_idrefs(value: Optional[str]) -> bool:
         all(NCNAME_PATTERN.match(x) is not None for x in value.split())
 
 
+node_position = attrgetter('position')
+
 ###
 # Sequence type checking
 SEQUENCE_TYPE_PATTERN = re.compile(r'\s?([()?*+,])\s?')
@@ -58,10 +71,10 @@ MONTH_DAYS = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 MONTH_DAYS_LEAP = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 
-def adjust_day(year: int, month: int, day: int):
-    if month in {1, 3, 5, 7, 8, 10, 12}:
+def adjust_day(year: int, month: int, day: int) -> int:
+    if month in (1, 3, 5, 7, 8, 10, 12):
         return day
-    elif month in {4, 6, 9, 11}:
+    elif month in (4, 6, 9, 11):
         return min(day, 30)
     else:
         return min(day, 29) if isleap(year) else min(day, 28)
@@ -135,14 +148,14 @@ def normalized_seconds(seconds: Decimal) -> str:
 
 
 def is_xml_codepoint(cp: int) -> bool:
-    return cp in {0x9, 0xA, 0xD} or \
+    return cp in (0x9, 0xA, 0xD) or \
         0x20 <= cp <= 0xD7FF or \
         0xE000 <= cp <= 0xFFFD or \
         0x10000 <= cp <= 0x10FFFF
 
 
 def ordinal(n: int) -> str:
-    if n in {11, 12, 13}:
+    if n in (11, 12, 13):
         return '%dth' % n
 
     least_significant_digit = n % 10
@@ -154,3 +167,44 @@ def ordinal(n: int) -> str:
         return '%drd' % n
     else:
         return '%dth' % n
+
+
+def numeric_equal(op1: SupportsFloat, op2: SupportsFloat) -> bool:
+    if op1 == op2:
+        return True
+    return math.isclose(op1, op2, rel_tol=1e-7, abs_tol=0.0)
+
+
+def numeric_not_equal(op1: SupportsFloat, op2: SupportsFloat) -> bool:
+    if op1 == op2:
+        return False
+    return not math.isclose(op1, op2, rel_tol=1e-7, abs_tol=0.0)
+
+
+def match_wildcard(name: str, wildcard: str) -> bool:
+    if wildcard == '*' or wildcard == '*:*':
+        return True
+    elif wildcard.startswith('*:'):
+        if name.startswith('{'):
+            return name.endswith(f'}}{wildcard[2:]}')
+        else:
+            return name == wildcard[2:]
+    elif wildcard.startswith('{') and wildcard.endswith('}*') or wildcard.endswith(':*'):
+        return name.startswith(wildcard[:-1])
+    else:
+        return False
+
+
+def get_locale_category(category: int) -> str:
+    """
+    Gets the current value of a locale category. A replacement
+    of locale.getdefaultlocale(), deprecated since Python 3.11.
+    """
+    locale = _locale.setlocale(category, None)
+    if locale == 'C':
+        # locale category does not seem to be configured, so get the user
+        # preferred locale and then restore the  previous state
+        locale = _locale.setlocale(category, '')
+        _locale.setlocale(category, 'C')
+
+    return locale
