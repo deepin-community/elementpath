@@ -11,7 +11,7 @@
 import unittest
 import xml.etree.ElementTree as ElementTree
 
-from elementpath import *
+from elementpath import select, iter_select, Selector, XPath2Parser
 
 
 class XPathSelectorsTest(unittest.TestCase):
@@ -48,6 +48,16 @@ class XPathSelectorsTest(unittest.TestCase):
         self.assertListEqual(selector.select(ElementTree.XML('<FullPath/>')), [])
         root = ElementTree.XML('<FullPath>High Temp</FullPath>')
         self.assertListEqual(selector.select(root), [root])
+
+    def test_issue_042(self):
+        selector1 = Selector('text()')
+        selector2 = Selector('sup[last()]/preceding-sibling::text()')
+        root = ElementTree.XML('<root>a<sup>1</sup>b<sup>2</sup>c<sup>3</sup></root>')
+        self.assertListEqual(selector1.select(root), selector2.select(root))
+
+        selector2 = Selector('sup[1]/following-sibling::text()')
+        root = ElementTree.XML('<root><sup>1</sup>b<sup>2</sup>c<sup>3</sup>d</root>')
+        self.assertListEqual(selector1.select(root), selector2.select(root))
 
 
 if __name__ == '__main__':

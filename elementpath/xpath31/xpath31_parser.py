@@ -21,23 +21,25 @@ class XPath31Parser(XPath30Parser):
     """
     version = '3.1'
 
-    SYMBOLS = XPath30Parser.SYMBOLS | set()
-    """
-    {
-        'format-number', 'random-number-generator', 'collation-key',
-        'contains-token', 'parse-ietf-date',
+    SYMBOLS = XPath30Parser.SYMBOLS | {
+        # Map and array functions
+        'map', 'array',  # 'merge',
+        'size', 'keys', 'contains', 'get',  # 'find',
+        'put',  # 'entry',
+        # 'remove', 'append', 'subarray', 'remove', 'join', 'flatten',
+
+        # 'random-number-generator', 'collation-key',
+        # 'contains-token', 'parse-ietf-date',
 
         # Higher-order functions
-        'sort', 'apply', 'load-xquery-module', 'transform',
-
-        # Maps and Arrays
-        'merge', 'size', 'keys', 'contains', 'get', 'find', 'put', 'entry',
-        'remove', 'append', 'subarray', 'remove', 'join', 'flatten',
+        # 'sort', 'apply', 'load-xquery-module', 'transform',
 
         # Functions on JSON Data
-        'parse-json', 'json-doc', 'json-to-xml', 'xml-to-json',
+        # 'parse-json', 'json-doc', 'json-to-xml', 'xml-to-json',
+
+        # Arrow operator
+        # '=>',
     }
-    """
 
     DEFAULT_NAMESPACES = {
         'map': XPATH_MAP_FUNCTIONS_NAMESPACE,
@@ -45,16 +47,11 @@ class XPath31Parser(XPath30Parser):
         **XPath30Parser.DEFAULT_NAMESPACES
     }
 
+    # https://www.w3.org/TR/xpath-31/#id-reserved-fn-names
+    RESERVED_FUNCTION_NAMES = {
+        'array', 'attribute', 'comment', 'document-node', 'element', 'empty-sequence',
+        'function', 'if', 'item', 'map', 'namespace-node', 'node', 'processing-instruction',
+        'schema-attribute', 'schema-element', 'switch', 'text', 'typeswitch',
+    }
 
-##
-# XPath 3.0 definitions
-register = XPath31Parser.register
-unregister = XPath31Parser.unregister
-literal = XPath31Parser.literal
-prefix = XPath31Parser.prefix
-infix = XPath31Parser.infix
-infixr = XPath31Parser.infixr
-method = XPath31Parser.method
-function = XPath31Parser.function
-
-XPath31Parser.build()
+    function_signatures = XPath30Parser.function_signatures.copy()

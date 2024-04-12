@@ -7,9 +7,13 @@
 #
 # @author Davide Brunato <brunato@sissa.it>
 #
-from ..exceptions import ElementPathTypeError
-from ..xpath_nodes import NamespaceNode, is_element_node
-from .xpath1_functions import XPath1Parser
+# type: ignore
+"""
+XPath 1.0 implementation - part 4 (axes)
+"""
+from ..xpath_nodes import ElementNode
+from ..xpath_context import XPathSchemaContext
+from ._xpath1_functions import XPath1Parser
 
 method = XPath1Parser.method
 axis = XPath1Parser.axis
@@ -28,33 +32,27 @@ def nud_attribute_reference(self):
 def select_attribute_reference_or_axis(self, context=None):
     if context is None:
         raise self.missing_context()
-
-    for _ in context.iter_attributes():
-        try:
+    else:
+        for _ in context.iter_attributes():
             yield from self[0].select(context)
-        except ElementPathTypeError:
-            pass
 
 
 @method(axis('namespace'))
 def select_namespace_axis(self, context=None):
     if context is None:
         raise self.missing_context()
-    elif is_element_node(context.item):
+    elif isinstance(context, XPathSchemaContext):
+        return  # deprecated for XP20+ and not needed for schema analysis
+    elif isinstance(context.item, ElementNode):
         elem = context.item
-        namespaces = self.parser.namespaces
+        if self[0].symbol == 'namespace-node':
+            name = '*'
+        else:
+            name = self[0].value
 
-        for prefix_, uri in namespaces.items():
-            context.item = NamespaceNode(prefix_, uri)
-            yield context.item
-
-        if hasattr(elem, 'nsmap'):
-            # Add element's namespaces for lxml (and use None for default namespace)
-            # noinspection PyUnresolvedReferences
-            for prefix_, uri in elem.nsmap.items():
-                if prefix_ not in namespaces:
-                    context.item = NamespaceNode(prefix_, uri, elem)
-                    yield context.item
+        for context.item in elem.namespace_nodes:
+            if name == '*' or name == context.item.prefix:
+                yield context.item
 
 
 @method(axis('self'))
@@ -127,9 +125,6 @@ def select_following_axis(self, context=None):
 def select_preceding_axis(self, context=None):
     if context is None:
         raise self.missing_context()
-    elif is_element_node(context.item):
+    else:
         for _ in context.iter_preceding():
             yield from self[0].select(context)
-
-
-register = XPath1Parser.register('(end)')

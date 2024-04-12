@@ -13,7 +13,7 @@ import re
 import sys
 from collections import namedtuple
 
-from elementpath.tdop import symbol_to_classname, ParseError, Token, \
+from elementpath.tdop import _symbol_to_classname, ParseError, Token, \
     ParserMeta, Parser, MultiLabel
 
 
@@ -38,11 +38,11 @@ class TdopParserTest(unittest.TestCase):
         ExpressionParser.register('(unknown)')
 
         @ExpressionParser.method(ExpressionParser.infix('+', bp=40))
-        def evaluate(self, context=None):
+        def evaluate_plus(self, context=None):
             return self[0].evaluate(context) + self[1].evaluate(context)
 
         @ExpressionParser.method(ExpressionParser.infix('-', bp=40))
-        def evaluate(self, context=None):
+        def evaluate_minus(self, context=None):
             return self[0].evaluate(context) - self[1].evaluate(context)
 
         cls.parser = ExpressionParser()
@@ -73,21 +73,21 @@ class TdopParserTest(unittest.TestCase):
         self.assertFalse(label.endswith('constructor'))
 
     def test_symbol_to_classname_function(self):
-        self.assertEqual(symbol_to_classname('_cat10'), 'Cat10')
-        self.assertEqual(symbol_to_classname('&'), 'Ampersand')
-        self.assertEqual(symbol_to_classname('('), 'LeftParenthesis')
-        self.assertEqual(symbol_to_classname(')'), 'RightParenthesis')
+        self.assertEqual(_symbol_to_classname('_cat10'), 'Cat10')
+        self.assertEqual(_symbol_to_classname('&'), 'Ampersand')
+        self.assertEqual(_symbol_to_classname('('), 'LeftParenthesis')
+        self.assertEqual(_symbol_to_classname(')'), 'RightParenthesis')
 
-        self.assertEqual(symbol_to_classname('(name)'), 'Name')
-        self.assertEqual(symbol_to_classname('(name'), 'LeftParenthesisname')
+        self.assertEqual(_symbol_to_classname('(name)'), 'Name')
+        self.assertEqual(_symbol_to_classname('(name'), 'LeftParenthesisname')
 
-        self.assertEqual(symbol_to_classname('-'), 'HyphenMinus')
-        self.assertEqual(symbol_to_classname('_'), 'LowLine')
-        self.assertEqual(symbol_to_classname('-_'), 'HyphenMinusLowLine')
-        self.assertEqual(symbol_to_classname('--'), 'HyphenMinusHyphenMinus')
+        self.assertEqual(_symbol_to_classname('-'), 'HyphenMinus')
+        self.assertEqual(_symbol_to_classname('_'), 'LowLine')
+        self.assertEqual(_symbol_to_classname('-_'), 'HyphenMinusLowLine')
+        self.assertEqual(_symbol_to_classname('--'), 'HyphenMinusHyphenMinus')
 
-        self.assertEqual(symbol_to_classname('my-api-call'), 'MyApiCall')
-        self.assertEqual(symbol_to_classname('call-'), 'Call')
+        self.assertEqual(_symbol_to_classname('my-api-call'), 'MyApiCall')
+        self.assertEqual(_symbol_to_classname('call-'), 'Call')
 
     def test_create_tokenizer_method(self):
         FakeToken = namedtuple('Token', 'symbol pattern label')
@@ -173,6 +173,7 @@ class TdopParserTest(unittest.TestCase):
         self.assertEqual(str(ec.exception), "unexpected name 'UNKNOWN'")
 
         parser = self.parser.__class__()
+        parser.symbol_table = parser.symbol_table.copy()
         parser.build()
         parser.symbol_table.pop('+')
 
@@ -193,17 +194,17 @@ class TdopParserTest(unittest.TestCase):
         parser = type(self.parser)()
         parser.source = '   7 +\n 8 '
         parser.tokens = iter(parser.tokenizer.finditer(parser.source))
-        self.assertIsNone(parser.token)
+        self.assertEqual(parser.token.symbol, '(start)')
 
         parser.advance()
-        self.assertIsNone(parser.token)
-        self.assertEqual(parser.position, (1, 4))
+        self.assertEqual(parser.token.symbol, '(start)')
+        self.assertEqual(parser.position, (1, 1))
         self.assertTrue(parser.is_source_start())
         self.assertTrue(parser.is_line_start())
-        self.assertFalse(parser.is_spaced())
+        self.assertTrue(parser.is_spaced())
 
         parser.advance()
-        self.assertIsNotNone(parser.token)
+        self.assertNotEqual(parser.token.symbol, '(start)')
         self.assertEqual(parser.token.value, 7)
         self.assertEqual(parser.position, (1, 4))
         self.assertTrue(parser.is_source_start())
@@ -336,25 +337,25 @@ class TdopParserTest(unittest.TestCase):
         ExpressionParser.postfix('+')
 
         @ExpressionParser.method(ExpressionParser.prefix('++', bp=90))
-        def evaluate(self_, context=None):
+        def evaluate_increment(self_, context=None):
             return self_[0].evaluate(context) + 1
 
         @ExpressionParser.method(ExpressionParser.postfix('+', bp=90))
-        def evaluate(self_, context=None):
+        def evaluate_plus(self_, context=None):
             return self_[0].evaluate(context) + 1
 
         @ExpressionParser.method(ExpressionParser.infixr('-', bp=50))
-        def evaluate(self_, context=None):
+        def evaluate_minus(self_, context=None):
             return self_[0].evaluate(context) - self_[1].evaluate(context)
 
         @ExpressionParser.method('*', bp=70)
-        def nud(self_):
+        def nud_mul(self_):
             for _ in range(3):
                 self_.append(self_.parser.expression(rbp=70))
             return self_
 
         @ExpressionParser.method('*', bp=70)
-        def evaluate(self_, context=None):
+        def evaluate_mul(self_, context=None):
             return self_[0].evaluate(context) * \
                 self_[1].evaluate(context) * self_[2].evaluate(context)
 

@@ -8,6 +8,9 @@
 # @author Davide Brunato <brunato@sissa.it>
 #
 import locale
+from typing import TYPE_CHECKING, Optional, Any
+if TYPE_CHECKING:
+    from .tdop import Token
 
 
 class ElementPathError(Exception):
@@ -18,13 +21,15 @@ class ElementPathError(Exception):
     :param code: an optional error code.
     :param token: an optional token instance related with the error.
     """
-    def __init__(self, message, code=None, token=None):
+    def __init__(self, message: str,
+                 code: Optional[str] = None,
+                 token: Optional['Token[Any]'] = None) -> None:
         super(ElementPathError, self).__init__(message)
         self.message = message
         self.code = code
         self.token = token
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.token is None or not isinstance(self.token.value, (str, bytes)):
             if not self.code:
                 return self.message
@@ -79,7 +84,7 @@ class ElementPathLocaleError(ElementPathError, locale.Error):
 
 
 XPATH_ERROR_CODES = {
-    # XPath 2.0 parser error (https://www.w3.org/TR/xpath20/#id-errors)
+    # XPath 2.0 parser errors (https://www.w3.org/TR/xpath20/#id-errors)
     'XPST0001': (ElementPathValueError, 'Parser not bound to a schema'),
     'XPST0003': (ElementPathSyntaxError, 'Invalid XPath expression'),
     'XPDY0002': (MissingContextError, 'Dynamic context required for evaluate'),
@@ -98,7 +103,7 @@ XPATH_ERROR_CODES = {
                  'Target type cannot be xs:NOTATION or xs:anyAtomicType'),
     'XPST0081': (ElementPathNameError, 'Unknown namespace'),
 
-    # XPath data types and function errors
+    # Data types and functions errors
     'FOER0000': (ElementPathError, 'Unidentified error'),
     'FOAR0001': (ElementPathZeroDivisionError, 'Division by zero'),
     'FOAR0002': (ElementPathOverflowError, 'Numeric operation overflow/underflow'),
@@ -141,7 +146,11 @@ XPATH_ERROR_CODES = {
     'FORX0004': (ElementPathValueError, 'Invalid replacement string'),
     'FOTY0012': (ElementPathValueError, 'Argument node does not have a typed value'),
 
-    # XPath 3.0 errors
+    # XPath 3.0+ errors
+    'XQST0039': (ElementPathTypeError, 'Duplicate parameter name in inline function expression'),
+    'XQST0046': (ElementPathTypeError, 'The namespace part of the EQName is not a valid URI'),
+    'XQST0052': (ElementPathNameError, 'The name of an in-scope simple schema type required'),
+    'XQST0070': (ElementPathNameError, 'Illegal use of a predefined namespace'),
     'FOTY0013': (ElementPathTypeError, 'The argument to fn:data() contains a function item'),
     'FOTY0014': (ElementPathTypeError, 'The argument to fn:string() is a function item'),
     'FOTY0015': (ElementPathTypeError,
@@ -160,6 +169,13 @@ XPATH_ERROR_CODES = {
     'FOFD1340': (ElementPathValueError, 'Invalid date/time formatting parameters'),
     'FOFD1350': (ElementPathValueError, 'Invalid date/time formatting component'),
 
+    'XPTY0117': (ElementPathTypeError,
+                 'Item type is xs:untypedAtomic and the expected type is namespace-sensitive'),
+    'XPDY0130': (ElementPathValueError,
+                 'An implementation-defined limit has been exceeded'),
+    'XPST0133': (ElementPathValueError,
+                 'The namespace URI for EQName is http://www.w3.org/2000/xmlns/'),
+
     # XSLT and XQuery Serialization errors
     # (the complete list: https://www.w3.org/TR/xslt-xquery-serialization/#id-errors)
     'SENR0001': (ElementPathTypeError, 'item is an attribute node or a namespace node'),
@@ -168,10 +184,15 @@ XPATH_ERROR_CODES = {
     'SEPM0018': (ElementPathValueError, 'use-character-maps serialization parameter in '
                                         'a sequence of length greater than one'),
     'SEPM0019': (ElementPathValueError, 'same serialization parameter appears more than once'),
+
+    # XPath 3.1+ errors
+    'FOAY0001': (ElementPathValueError, 'Array index out of bounds'),
+    'FOAY0002': (ElementPathValueError, 'Negative array length'),
 }
 
 
-def xpath_error(code, message=None, token=None, prefix='err'):
+def xpath_error(code: str, message: Optional[str] = None,
+                token: Optional['Token[Any]'] = None, prefix: str = 'err') -> ElementPathError:
     """
     Returns an XPath error instance related with a code. An XPath/XQuery/XSLT error code
     (ref: http://www.w3.org/2005/xqt-errors) is an alphanumeric token starting with four

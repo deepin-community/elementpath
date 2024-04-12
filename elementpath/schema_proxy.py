@@ -8,13 +8,22 @@
 # @author Davide Brunato <brunato@sissa.it>
 #
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, List, Optional, Iterator
+from typing import TYPE_CHECKING, cast, Any, Dict, List, Optional, Iterator, Union
 
 from .exceptions import ElementPathTypeError
 from .protocols import ElementProtocol, XsdTypeProtocol, XsdAttributeProtocol, \
     XsdElementProtocol, XsdSchemaProtocol
-from .xpath_nodes import is_etree_element
+from .datatypes import AtomicValueType
+from .etree import is_etree_element
 from .xpath_context import XPathSchemaContext
+
+if TYPE_CHECKING:
+    from .xpath2 import XPath2Parser
+    from .xpath30 import XPath30Parser
+
+    XPathParserType = Union[XPath2Parser, XPath30Parser]
+else:
+    XPathParserType = Any
 
 
 class AbstractSchemaProxy(metaclass=ABCMeta):
@@ -24,7 +33,8 @@ class AbstractSchemaProxy(metaclass=ABCMeta):
     :param schema: a schema instance that implements the `AbstractEtreeElement` interface.
     :param base_element: the schema element used as base item for static analysis.
     """
-    def __init__(self, schema: XsdSchemaProtocol, base_element: Optional[ElementProtocol] = None):
+    def __init__(self, schema: XsdSchemaProtocol,
+                 base_element: Optional[ElementProtocol] = None) -> None:
         if not is_etree_element(schema):
             raise ElementPathTypeError(
                 "argument {!r} is not a compatible schema instance".format(schema)
@@ -37,7 +47,7 @@ class AbstractSchemaProxy(metaclass=ABCMeta):
         self._schema = schema
         self._base_element: Optional[ElementProtocol] = base_element
 
-    def bind_parser(self, parser):
+    def bind_parser(self, parser: XPathParserType) -> None:
         """
         Binds a parser instance with schema proxy adding the schema's atomic types constructors.
         This method can be redefined in a concrete proxy to optimize schema bindings.
@@ -47,12 +57,13 @@ class AbstractSchemaProxy(metaclass=ABCMeta):
         if parser.schema is not self:
             parser.schema = self
 
-        parser.symbol_table = parser.__class__.symbol_table.copy()
+        parser.symbol_table = dict(parser.__class__.symbol_table)
         for xsd_type in self.iter_atomic_types():
-            parser.schema_constructor(xsd_type.name)
+            if xsd_type.name is not None:
+                parser.schema_constructor(xsd_type.name)
         parser.tokenizer = parser.create_tokenizer(parser.symbol_table)
 
-    def get_context(self):
+    def get_context(self) -> XPathSchemaContext:
         """
         Get a context instance for static analysis phase.
 
@@ -60,7 +71,8 @@ class AbstractSchemaProxy(metaclass=ABCMeta):
         """
         return XPathSchemaContext(root=self._schema, item=self._base_element)
 
-    def find(self, path: str, namespaces: Optional[Dict[str, str]] = None):
+    def find(self, path: str, namespaces: Optional[Dict[str, str]] = None) \
+            -> Optional[XsdElementProtocol]:
         """
         Find a schema element or attribute using an XPath expression.
 
@@ -68,10 +80,10 @@ class AbstractSchemaProxy(metaclass=ABCMeta):
         :param namespaces: an optional mapping from namespace prefix to namespace URI.
         :return: The first matching schema component, or ``None`` if there is no match.
         """
-        return self._schema.find(path, namespaces)
+        return cast(Optional[XsdElementProtocol], self._schema.find(path, namespaces))
 
     @property
-    def xsd_version(self):
+    def xsd_version(self) -> str:
         """The XSD version, returns '1.0' or '1.1'."""
         return self._schema.xsd_version
 
@@ -129,13 +141,13 @@ class AbstractSchemaProxy(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def cast_as(self, obj: Any, type_qname: str) -> XsdTypeProtocol:
+    def cast_as(self, obj: Any, type_qname: str) -> AtomicValueType:
         """
         Converts *obj* to the Python type associated with an XSD global type. A concrete
         implementation must raises a `ValueError` or `TypeError` in case of a decoding
         error or a `KeyError` if the type is not bound to the schema's scope.
 
-        :param obj: the instance to be casted.
+        :param obj: the instance to be cast.
         :param type_qname: the fully qualified name of the type used to convert the instance.
         """
 
@@ -143,18 +155,7 @@ class AbstractSchemaProxy(metaclass=ABCMeta):
     def iter_atomic_types(self) -> Iterator[XsdTypeProtocol]:
         """
         Returns an iterator for not builtin atomic types defined in the schema's scope. A concrete
-        implementation must yields objects that implement the protocol `XsdTypeProtocol`.
-        """
-
-    @abstractmethod
-    def get_primitive_type(self, xsd_type: XsdTypeProtocol) -> XsdTypeProtocol:
-        """
-        Returns the type at base of the definition of an XSD type. For an atomic type
-        is effectively the primitive type. For a list is the primitive type of the item.
-        For a union is the base union type. For a complex type is xs:anyType.
-
-        :param xsd_type: an XSD type instance.
-        :return: an XSD type instance.
+        implementation must yield objects that implement the protocol `XsdTypeProtocol`.
         """
 
 

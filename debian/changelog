@@ -1,3 +1,37 @@
+elementpath (3.0.2-1) unstable; urgency=medium
+
+  * Import new upstream release
+  * Fix d/watch issue
+  * Workaround for skipping test function issue
+  * d/control:
+    - Remove inactive maintainer
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Tue, 20 Dec 2022 21:42:48 +0800
+
+elementpath (2.5.3-1) unstable; urgency=medium
+
+  * Import new upstream release
+  * d/control:
+    - Bump Standards-Version to 4.6.1.0
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Sat, 25 Jun 2022 20:46:00 +0800
+
+elementpath (2.5.0-1) unstable; urgency=medium
+
+  * Import new upstream release
+  * d/copyright:
+    - Update copyright content
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Sun, 06 Mar 2022 19:07:56 +0800
+
+elementpath (2.3.1-1) UNRELEASED; urgency=medium
+
+  * Import new upstream release
+  * d/control:
+    - Bump Standards-Version to 4.6.0.1
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Thu, 16 Sep 2021 10:51:22 +0800
+
 elementpath (2.3.0-1) unstable; urgency=medium
 
   * Import new upstream release

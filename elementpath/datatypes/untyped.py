@@ -9,6 +9,9 @@
 #
 import operator
 from decimal import Decimal
+from typing import Any, Tuple, Union
+
+from ..helpers import BOOLEAN_VALUES
 from .atomic_types import AtomicTypeMeta, AnyAtomicType
 
 
@@ -20,13 +23,15 @@ class UntypedAtomic(metaclass=AtomicTypeMeta):
     :param value: the untyped value, usually a string.
     """
     name = 'untypedAtomic'
+    value: str
 
     @classmethod
-    def validate(cls, value):
+    def validate(cls, value: object) -> None:
         if not isinstance(value, cls):
             raise cls.invalid_type(value)
 
-    def __init__(self, value):
+    def __init__(self, value: Union[str, bytes, bool, float, Decimal,
+                                    'UntypedAtomic', AnyAtomicType]) -> None:
         if isinstance(value, str):
             self.value = value
         elif isinstance(value, bytes):
@@ -44,10 +49,10 @@ class UntypedAtomic(metaclass=AtomicTypeMeta):
         else:
             raise TypeError("{!r} is not an atomic value".format(value))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '%s(%r)' % (self.__class__.__name__, self.value)
 
-    def _get_operands(self, other, force_float=True):
+    def _get_operands(self, other: Any, force_float: bool = True) -> Tuple[Any, Any]:
         """
         Returns a couple of operands, applying a cast to the instance value based on
         the type of the *other* argument.
@@ -63,77 +68,77 @@ class UntypedAtomic(metaclass=AtomicTypeMeta):
         elif isinstance(other, bool):
             # Cast to xs:boolean
             value = self.value.strip()
-            if value not in {'0', '1', 'true', 'false'}:
+            if value not in BOOLEAN_VALUES:
                 raise ValueError("{!r} cannot be cast to xs:boolean".format(self.value))
             return value in ('1', 'true'), other
         elif isinstance(other, int):
             return float(self.value), other
-        elif isinstance(other, str):
-            return str(self.value), other
+        elif other is None or isinstance(other, (str, list)):
+            return self.value, other
 
         try:
             return type(other).fromstring(self.value), other
         except AttributeError:
             return type(other)(self.value), other
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.value)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> Any:
         return operator.eq(*self._get_operands(other, force_float=False))
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> Any:
         return not operator.eq(*self._get_operands(other, force_float=False))
 
-    def __lt__(self, other):
+    def __lt__(self, other: Any) -> Any:
         return operator.lt(*self._get_operands(other))
 
-    def __le__(self, other):
+    def __le__(self, other: Any) -> Any:
         return operator.le(*self._get_operands(other))
 
-    def __gt__(self, other):
+    def __gt__(self, other: Any) -> Any:
         return operator.gt(*self._get_operands(other))
 
-    def __ge__(self, other):
+    def __ge__(self, other: Any) -> Any:
         return operator.ge(*self._get_operands(other))
 
-    def __add__(self, other):
+    def __add__(self, other: Any) -> Any:
         return operator.add(*self._get_operands(other))
     __radd__ = __add__
 
-    def __sub__(self, other):
+    def __sub__(self, other: Any) -> Any:
         return operator.sub(*self._get_operands(other))
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: Any) -> Any:
         return operator.sub(*reversed(self._get_operands(other)))
 
-    def __mul__(self, other):
+    def __mul__(self, other: Any) -> Any:
         return operator.mul(*self._get_operands(other))
     __rmul__ = __mul__
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Any) -> Any:
         return operator.truediv(*self._get_operands(other))
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: Any) -> Any:
         return operator.truediv(*reversed(self._get_operands(other)))
 
-    def __int__(self):
+    def __int__(self) -> int:
         return int(self.value)
 
-    def __float__(self):
+    def __float__(self) -> float:
         return float(self.value)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.value)  # For effective boolean value, not for cast to xs:boolean.
 
-    def __abs__(self):
+    def __abs__(self) -> Decimal:
         return abs(Decimal(self.value))
 
-    def __mod__(self, other):
+    def __mod__(self, other: Any) -> Any:
         return operator.mod(*self._get_operands(other))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         return bytes(self.value, encoding='utf-8')

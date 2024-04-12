@@ -923,7 +923,7 @@ class TestPatterns(unittest.TestCase):
 
     def test_invalid_pattern_groups(self):
         with self.assertRaises(RegexError) as ctx:
-            translate_pattern('(?:.*)')
+            translate_pattern('(?.*)')
         self.assertIn("invalid '(?...)' extension notation", str(ctx.exception))
 
         with self.assertRaises(RegexError) as ctx:
@@ -992,6 +992,17 @@ class TestPatterns(unittest.TestCase):
         pattern = re.compile(regex)
         self.assertIsNotNone(pattern.match("38:36:000031"))
         self.assertIsNone(pattern.match("38:36:000031\n"))
+
+    def test_possessive_quantifiers(self):
+        # Note: possessive quantifiers (*+, ++, ?+, {m,n}+) are supported in Python 3.11+
+
+        with self.assertRaises(RegexError) as ctx:
+            translate_pattern('^[abcd]*+$')
+        self.assertIn("unexpected meta character '+' at position 8", str(ctx.exception))
+
+        with self.assertRaises(RegexError) as ctx:
+            translate_pattern('^[abcd]{1,5}+$')
+        self.assertIn("unexpected meta character '+' at position 12", str(ctx.exception))
 
 
 if __name__ == '__main__':

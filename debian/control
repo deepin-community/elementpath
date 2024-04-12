@@ -1,15 +1,14 @@
 Source: elementpath
 Section: python
 Priority: optional
-Maintainer: Alvin Chen <sonoma001@gmail.com>
-Uploaders: SZ Lin (林上智) <szlin@debian.org>
+Maintainer: SZ Lin (林上智) <szlin@debian.org>
 Build-Depends: debhelper-compat (= 13),
                dh-python,
                python3-all,
                python3-setuptools,
                python3-lxml,
                locales-all
-Standards-Version: 4.5.1
+Standards-Version: 4.6.1.0
 Homepage: https://github.com/sissaschool/elementpath
 Vcs-Browser: https://salsa.debian.org/debian/elementpath
 Vcs-Git: https://salsa.debian.org/debian/elementpath.git
